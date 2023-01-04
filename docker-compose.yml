@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  php-apache:
+    build:
+      context: "./.docker/php-apache"
+    ports:
+      - '8080:80'
+      - '443:443'
+      - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
+    expose:
+      - 9003
+    volumes:
+      - ./:/var/www/app
+      - ./.docker/php-apache/default.conf:/etc/apache2/sites-enabled/000-default.conf
+    container_name: "opera-php-apache"
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+    depends_on:
+      - database
+  database:
+    image: mysql:8.0-debian
+    container_name: "opera-database"
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: opera
+      MYSQL_ROOT_PASSWORD: sissyilcane32!
+    volumes:
+      - ./.docker/mysql:/var/lib/mysql
+  node:
+    build:
+      context: "./.docker/node"
+    container_name: "opera-node"
+    volumes:
+      - ./:/var/www/app
+    entrypoint: ["npm"]
+
